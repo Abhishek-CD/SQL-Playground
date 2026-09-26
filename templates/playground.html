@@ -1,0 +1,298 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="app-container">
+    <!-- Top Header Navigation -->
+    <header class="app-header">
+        <div class="header-brand">
+            <div class="brand-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                    <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                    <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                </svg>
+            </div>
+            <div class="brand-titles">
+                <h1 class="brand-name">SQL PLAYGROUND</h1>
+                <span class="engine-badge" id="engineStatus">
+                    <span class="pulse-dot"></span> SQLite Engine Active
+                </span>
+            </div>
+        </div>
+
+        <div class="header-actions">
+            <div class="quick-examples-dropdown">
+                <button type="button" class="btn btn-secondary btn-sm" id="btnTemplates" title="Load sample schemas & queries">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>
+                    <span>Sample Queries ▾</span>
+                </button>
+                <div class="dropdown-menu" id="templatesMenu">
+                    <div class="dropdown-header">Quick Starter Queries</div>
+                    <button type="button" class="dropdown-item" data-template="create_employees">
+                        <strong>1. Create Employees Table</strong>
+                        <small>Schema with PK, NOT NULL, UNIQUE</small>
+                    </button>
+                    <button type="button" class="dropdown-item" data-template="insert_employees">
+                        <strong>2. Insert Employee Records</strong>
+                        <small>Multiple INSERT statements</small>
+                    </button>
+                    <button type="button" class="dropdown-item" data-template="create_relational">
+                        <strong>3. Relational Schema (FK)</strong>
+                        <small>Departments & Employees with FOREIGN KEY</small>
+                    </button>
+                    <button type="button" class="dropdown-item" data-template="select_queries">
+                        <strong>4. Joins & Aggregations</strong>
+                        <small>SELECT with JOIN, GROUP BY, AVG</small>
+                    </button>
+                </div>
+            </div>
+
+            <button type="button" class="btn btn-outline-danger btn-sm" id="btnResetDatabase" title="Reset all tables to fresh state">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                    <path d="M3 3v5h5"></path>
+                </svg>
+                <span>Reset Database</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Two-Panel Playground Grid -->
+    <main class="playground-layout">
+        <!-- LEFT PANEL: SQL Editor & Query Results -->
+        <section class="panel editor-panel" aria-label="SQL Editor and Query Results">
+            <!-- SQL Editor Section -->
+            <div class="editor-section">
+                <div class="panel-toolbar">
+                    <div class="toolbar-title">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="4 17 10 11 4 5"></polyline>
+                            <line x1="12" y1="19" x2="20" y2="19"></line>
+                        </svg>
+                        <span>SQL EDITOR</span>
+                    </div>
+                    <div class="editor-helpers">
+                        <span class="editor-shortcut-hint"><kbd>Ctrl</kbd> + <kbd>Enter</kbd> to run</span>
+                    </div>
+                </div>
+
+                <!-- Code Editor Wrapper with Line Numbers -->
+                <div class="editor-container" id="editorContainer">
+                    <div class="line-numbers" id="lineNumbers">1</div>
+                    <textarea 
+                        id="sqlEditor" 
+                        class="code-textarea" 
+                        spellcheck="false" 
+                        placeholder="-- Write SQLite queries here (e.g. CREATE TABLE, INSERT, SELECT)..."
+                        rows="10"
+                    ></textarea>
+                </div>
+
+                <!-- Editor Action Buttons -->
+                <div class="editor-controls">
+                    <div class="controls-left">
+                        <button type="button" class="btn btn-primary" id="btnRunSql" title="Execute SQL (Ctrl + Enter)">
+                            <svg class="icon-play" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                                <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                            </svg>
+                            <span class="btn-text" id="runBtnText">Run SQL</span>
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="btnFormatSql" title="Format and beautify SQL query">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="21" y1="10" x2="7" y2="10"></line>
+                                <line x1="21" y1="6" x2="3" y2="6"></line>
+                                <line x1="21" y1="14" x2="3" y2="14"></line>
+                                <line x1="21" y1="18" x2="7" y2="18"></line>
+                            </svg>
+                            <span>Format</span>
+                        </button>
+                    </div>
+                    <div class="controls-right">
+                        <button type="button" class="btn btn-ghost" id="btnClearSql" title="Clear editor content">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                            <span>Clear</span>
+                        </button>
+                        <button type="button" class="btn btn-ghost" id="btnCopySql" title="Copy SQL text to clipboard">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                            <span>Copy</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Query Result & Message Section -->
+            <div class="result-section">
+                <div class="result-tabs-bar">
+                    <div class="tabs-group">
+                        <button type="button" class="tab-btn active" id="tabQueryResult" data-target="panelQueryResult">
+                            <span>QUERY RESULT</span>
+                            <span class="badge badge-subtle" id="resultRowCountBadge">0 rows</span>
+                        </button>
+                        <button type="button" class="tab-btn" id="tabQueryHistory" data-target="panelQueryHistory">
+                            <span>HISTORY</span>
+                            <span class="badge badge-subtle" id="historyCountBadge">0</span>
+                        </button>
+                    </div>
+
+                    <div class="result-meta" id="resultMeta">
+                        <span class="meta-item" id="metaExecutionTime">Execution: -- ms</span>
+                    </div>
+                </div>
+
+                <!-- Query Result Content Container -->
+                <div class="tab-content" id="panelQueryResult">
+                    <!-- Status message banner -->
+                    <div class="status-banner banner-info" id="statusBanner">
+                        <div class="banner-icon" id="bannerIcon">ℹ️</div>
+                        <div class="banner-content" id="bannerMessage">Ready. Enter SQL queries above and click <strong>Run SQL</strong>.</div>
+                    </div>
+
+                    <!-- Error details banner (hidden by default) -->
+                    <div class="error-banner hidden" id="errorBanner">
+                        <div class="error-header">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg>
+                            <span class="error-title">SQL Execution Error</span>
+                        </div>
+                        <pre class="error-body" id="errorBody"></pre>
+                        <div class="error-tip" id="errorTip">💡 Check your SQLite syntax, table and column names, or constraints and try again.</div>
+                    </div>
+
+                    <!-- Dynamic Table Result Render Area -->
+                    <div class="table-scroll-container" id="queryResultContainer">
+                        <div class="result-empty-state" id="resultEmptyState">
+                            <div class="empty-icon">📊</div>
+                            <div class="empty-title">No query results yet</div>
+                            <div class="empty-desc">Execute a <code>SELECT</code> query or DDL/DML statement to see real execution output here.</div>
+                        </div>
+                        <table class="data-table hidden" id="queryResultTable">
+                            <thead id="queryResultHead"></thead>
+                            <tbody id="queryResultBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Query History Tab Container -->
+                <div class="tab-content hidden" id="panelQueryHistory">
+                    <div class="history-container">
+                        <div class="history-toolbar">
+                            <span>Recent SQL Statements (Saved Locally)</span>
+                            <button type="button" class="btn btn-ghost btn-xs text-danger" id="btnClearHistory">Clear History</button>
+                        </div>
+                        <div class="history-list" id="historyList">
+                            <div class="history-empty">No query history yet.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- RIGHT PANEL: Live Database Explorer -->
+        <section class="panel database-panel" aria-label="Live SQLite Database State">
+            <div class="panel-toolbar db-toolbar">
+                <div class="toolbar-title">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                    </svg>
+                    <span>LIVE DATABASE</span>
+                    <span class="badge badge-primary" id="tableCountBadge">0 Tables</span>
+                </div>
+                <div class="db-actions">
+                    <button type="button" class="btn btn-ghost btn-xs" id="btnRefreshDb" title="Refresh Database State">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <polyline points="1 20 1 14 7 14"></polyline>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                        </svg>
+                        <span>Refresh</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Table Filter Box -->
+            <div class="db-search-bar" id="dbSearchBar">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="text" id="tableFilterInput" placeholder="Filter tables by name..." aria-label="Filter tables">
+            </div>
+
+            <!-- Database Content Area -->
+            <div class="database-explorer-content" id="databaseExplorerContent">
+                <!-- Empty State when 0 tables exist -->
+                <div class="db-empty-state" id="dbEmptyState">
+                    <div class="empty-db-icon">
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                        </svg>
+                    </div>
+                    <h3>No Tables Found</h3>
+                    <p>Your database is empty. Create tables using the SQL editor or load sample queries.</p>
+                </div>
+
+                <!-- Relationships Overview (when foreign keys exist) -->
+                <div class="relationships-container hidden" id="relationshipsContainer">
+                    <div class="relationships-header">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="18" cy="5" r="3"></circle>
+                            <circle cx="6" cy="12" r="3"></circle>
+                            <circle cx="18" cy="19" r="3"></circle>
+                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                        </svg>
+                        <span>FOREIGN KEY RELATIONSHIPS</span>
+                    </div>
+                    <div class="relationships-list" id="relationshipsList"></div>
+                </div>
+
+                <!-- Tables List Accordion Container -->
+                <div class="tables-accordion" id="tablesAccordion"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Confirmation Modal for Database Reset -->
+    <div class="modal-backdrop hidden" id="resetModal">
+        <div class="modal-card">
+            <div class="modal-icon danger">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+            </div>
+            <div class="modal-content">
+                <h3 class="modal-title">Reset Practice Database?</h3>
+                <p class="modal-text">
+                    This will permanently drop all user-created tables, views, triggers, and all stored data in the practice database.
+                </p>
+                <p class="modal-subtext">This action cannot be undone.</p>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" id="btnCancelReset">Cancel</button>
+                <button type="button" class="btn btn-danger" id="btnConfirmReset">Yes, Reset Database</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toastContainer"></div>
+</div>
+{% endblock %}
